@@ -1,12 +1,83 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import React, { useState } from 'react';
+import { WelcomeScreen } from '@/components/onboarding/WelcomeScreen';
+import { CategorySelection } from '@/components/onboarding/CategorySelection';
+import { ProfileSetup } from '@/components/onboarding/ProfileSetup';
+import { GoalSelection } from '@/components/onboarding/GoalSelection';
+import { Dashboard } from '@/components/Dashboard';
+
+export interface UserProfile {
+  category: 'student' | 'youth' | 'working-professional' | 'general-citizen' | null;
+  age?: number;
+  district?: string;
+  gender?: string;
+  privacyMode: 'anonymous' | 'registered';
+  nickname?: string;
+  goals: string[];
+  completedOnboarding: boolean;
+}
 
 const Index = () => {
+  const [currentStep, setCurrentStep] = useState<'welcome' | 'category' | 'profile' | 'goals' | 'dashboard'>('welcome');
+  const [userProfile, setUserProfile] = useState<UserProfile>({
+    category: null,
+    privacyMode: 'anonymous',
+    goals: [],
+    completedOnboarding: false
+  });
+
+  const handleStepComplete = (step: string, data: Partial<UserProfile>) => {
+    const updatedProfile = { ...userProfile, ...data };
+    setUserProfile(updatedProfile);
+
+    switch (step) {
+      case 'welcome':
+        setCurrentStep('category');
+        break;
+      case 'category':
+        setCurrentStep('profile');
+        break;
+      case 'profile':
+        setCurrentStep('goals');
+        break;
+      case 'goals':
+        setCurrentStep('dashboard');
+        setUserProfile(prev => ({ ...prev, completedOnboarding: true }));
+        break;
+    }
+  };
+
+  const renderCurrentStep = () => {
+    switch (currentStep) {
+      case 'welcome':
+        return <WelcomeScreen onNext={() => handleStepComplete('welcome', {})} />;
+      case 'category':
+        return (
+          <CategorySelection 
+            onNext={(category) => handleStepComplete('category', { category })}
+          />
+        );
+      case 'profile':
+        return (
+          <ProfileSetup 
+            onNext={(profileData) => handleStepComplete('profile', profileData)}
+          />
+        );
+      case 'goals':
+        return (
+          <GoalSelection 
+            onNext={(goals) => handleStepComplete('goals', { goals })}
+          />
+        );
+      case 'dashboard':
+        return <Dashboard userProfile={userProfile} />;
+      default:
+        return <WelcomeScreen onNext={() => handleStepComplete('welcome', {})} />;
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-gradient-calm">
+      {renderCurrentStep()}
     </div>
   );
 };
