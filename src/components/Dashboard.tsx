@@ -3,17 +3,19 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MoodTracker } from '@/components/mood/MoodTracker';
 import { SessionScheduler } from '@/components/sessions/SessionScheduler';
+import { EditProfile } from '@/components/profile/EditProfile';
 import { Calendar, BarChart3, MessageSquare, Settings, User } from 'lucide-react';
 import { UserProfile } from '@/pages/Index';
 import { cn } from '@/lib/utils';
 
 interface DashboardProps {
   userProfile: UserProfile;
+  onUpdateProfile: (updatedProfile: UserProfile) => void;
 }
 
 type ActiveTab = 'mood' | 'schedule' | 'progress' | 'profile';
 
-export const Dashboard: React.FC<DashboardProps> = ({ userProfile }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ userProfile, onUpdateProfile }) => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('mood');
 
   const tabs = [
@@ -47,7 +49,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ userProfile }) => {
         return (
           <Card className="p-8 shadow-soft">
             <div className="space-y-6">
-              <h3 className="text-2xl font-semibold text-foreground">Your Profile</h3>
+              <div className="flex justify-between items-center">
+                <h3 className="text-2xl font-semibold text-foreground">Your Profile</h3>
+                <EditProfile userProfile={userProfile} onUpdate={onUpdateProfile} />
+              </div>
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Display Name:</span>

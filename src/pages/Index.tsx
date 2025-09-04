@@ -46,6 +46,10 @@ const Index = () => {
     }
   };
 
+  const handleUpdateProfile = (updatedProfile: UserProfile) => {
+    setUserProfile(updatedProfile);
+  };
+
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 'welcome':
@@ -69,7 +73,7 @@ const Index = () => {
           />
         );
       case 'dashboard':
-        return <Dashboard userProfile={userProfile} />;
+        return <Dashboard userProfile={userProfile} onUpdateProfile={handleUpdateProfile} />;
       default:
         return <WelcomeScreen onNext={() => handleStepComplete('welcome', {})} />;
     }
