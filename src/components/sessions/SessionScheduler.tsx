@@ -58,7 +58,7 @@ export const SessionScheduler: React.FC<SessionSchedulerProps> = ({ userProfile 
   const [urgencyLevel, setUrgencyLevel] = useState<string>('');
   const { toast } = useToast();
 
-  const canBookOfficial = userProfile.privacyMode === 'registered';
+  const isRegistered = userProfile.privacyMode === 'registered';
 
   const handleBookSession = () => {
     if (!selectedDate || !selectedTime || !selectedSessionType) {
@@ -70,19 +70,13 @@ export const SessionScheduler: React.FC<SessionSchedulerProps> = ({ userProfile 
       return;
     }
 
-    if (!canBookOfficial) {
-      toast({
-        title: "Registration Required",
-        description: "Please switch to registered mode in your profile to book official sessions.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     // Here you would typically book the session through an API
+    const sessionMode = isRegistered ? "official government session" : "anonymous consultation";
     toast({
-      title: "Session booking request sent! 📅",
-      description: "You'll receive a confirmation email shortly with session details.",
+      title: `${sessionMode} booking request sent! 📅`,
+      description: isRegistered 
+        ? "You'll receive a confirmation email shortly with session details."
+        : "Your anonymous session request has been submitted. You'll be contacted via the app.",
     });
 
     // Reset form
@@ -96,19 +90,36 @@ export const SessionScheduler: React.FC<SessionSchedulerProps> = ({ userProfile 
   return (
     <div className="space-y-6">
       {/* Privacy Notice */}
-      {!canBookOfficial && (
-        <Card className="p-4 border-2 border-amber-200 bg-amber-50">
-          <div className="flex items-center space-x-2">
-            <MapPin className="w-5 h-5 text-amber-600" />
-            <div>
-              <p className="font-medium text-amber-800">Registration Required</p>
-              <p className="text-sm text-amber-700">
-                Switch to registered mode in your profile to book official government counseling sessions.
-              </p>
-            </div>
+      <Card className={cn(
+        "p-4 border-2",
+        isRegistered 
+          ? "border-green-200 bg-green-50" 
+          : "border-blue-200 bg-blue-50"
+      )}>
+        <div className="flex items-center space-x-2">
+          <MapPin className={cn(
+            "w-5 h-5",
+            isRegistered ? "text-green-600" : "text-blue-600"
+          )} />
+          <div>
+            <p className={cn(
+              "font-medium",
+              isRegistered ? "text-green-800" : "text-blue-800"
+            )}>
+              {isRegistered ? "Official Sessions Available" : "Anonymous Session Mode"}
+            </p>
+            <p className={cn(
+              "text-sm",
+              isRegistered ? "text-green-700" : "text-blue-700"
+            )}>
+              {isRegistered 
+                ? "You can book official government counseling sessions with full documentation."
+                : "You can book anonymous consultations. Switch to registered mode for official sessions."
+              }
+            </p>
           </div>
-        </Card>
-      )}
+        </div>
+      </Card>
 
       {/* Session Type Selection */}
       <Card className="p-6 shadow-soft">
@@ -122,11 +133,8 @@ export const SessionScheduler: React.FC<SessionSchedulerProps> = ({ userProfile 
               <button
                 key={session.id}
                 onClick={() => setSelectedSessionType(session.id)}
-                disabled={!canBookOfficial}
                 className={cn(
-                  "p-4 rounded-lg border-2 transition-all duration-300 text-left",
-                  "hover:shadow-soft",
-                  !canBookOfficial && "opacity-50 cursor-not-allowed",
+                  "p-4 rounded-lg border-2 transition-all duration-300 text-left hover:shadow-soft",
                   isSelected 
                     ? "border-primary bg-primary/5 shadow-soft" 
                     : "border-border hover:border-primary/50"
@@ -167,7 +175,7 @@ export const SessionScheduler: React.FC<SessionSchedulerProps> = ({ userProfile 
             mode="single"
             selected={selectedDate}
             onSelect={setSelectedDate}
-            disabled={(date) => date < new Date() || !canBookOfficial}
+            disabled={(date) => date < new Date()}
             className="rounded-md border pointer-events-auto"
           />
         </Card>
@@ -182,10 +190,8 @@ export const SessionScheduler: React.FC<SessionSchedulerProps> = ({ userProfile 
               <button
                 key={time}
                 onClick={() => setSelectedTime(time)}
-                disabled={!canBookOfficial}
                 className={cn(
                   "p-3 rounded-lg border transition-all duration-300",
-                  !canBookOfficial && "opacity-50 cursor-not-allowed",
                   selectedTime === time
                     ? "border-primary bg-primary/10 text-primary"
                     : "border-border hover:border-primary/50 text-foreground"
@@ -202,7 +208,7 @@ export const SessionScheduler: React.FC<SessionSchedulerProps> = ({ userProfile 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="p-6 shadow-soft">
           <h3 className="text-xl font-semibold text-foreground mb-4">Urgency Level</h3>
-          <Select value={urgencyLevel} onValueChange={setUrgencyLevel} disabled={!canBookOfficial}>
+          <Select value={urgencyLevel} onValueChange={setUrgencyLevel}>
             <SelectTrigger>
               <SelectValue placeholder="How urgent is this session?" />
             </SelectTrigger>
@@ -221,7 +227,6 @@ export const SessionScheduler: React.FC<SessionSchedulerProps> = ({ userProfile 
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="Brief description of what you'd like to discuss..."
-            disabled={!canBookOfficial}
             className="min-h-[100px] transition-all duration-300 focus:shadow-soft"
           />
         </Card>
@@ -230,7 +235,7 @@ export const SessionScheduler: React.FC<SessionSchedulerProps> = ({ userProfile 
       {/* Book Session Button */}
       <Button 
         onClick={handleBookSession}
-        disabled={!canBookOfficial || !selectedDate || !selectedTime || !selectedSessionType}
+        disabled={!selectedDate || !selectedTime || !selectedSessionType}
         className="w-full bg-gradient-primary shadow-soft hover:shadow-glow transition-all duration-300"
         size="lg"
       >
